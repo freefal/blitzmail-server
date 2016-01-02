@@ -1,0 +1,21 @@
+Message-id: <1@mac.Dartmouth.Edu>
+Date: 1 Sep 92 15:00:00 EDT
+From: Postmaster@mac
+Subject: Welcome!
+To: All New Users
+
+Welcome to BlitzMailª!
+
+BlitzMail allows you to send and receive electronic mail and to read electronic bulletins using your Macintosh.  You can send mail to anyone at Dartmouth simply by typing their name in the To: field of a Composing window.  BlitzMail looks up the person's preferred electronic mail address in the Dartmouth Name Directory (DND), and delivers the message.
+
+Here are some tips for setting up BlitzMail:
+
+¥	To install BlitzMail, drag the "Notify" file to your System Folder and restart your Macintosh.  Place BlitzMail and BlitzMail Help in any folder.
+
+¥	It is a good idea to put your name in the Sharing Setup control panel (or, in the Chooser desk accessory, if you're using System 6) -- that way you won't have to type your name each time you sign on.
+
+¥	You should also add your name to the Notify control panel so that you will be notified of arriving mail messages and bulletins. To do this, open the Notify control panel, and click "Add". Type your name and password in resulting dialog box, and click "OK". You may also click the "Options" button to modify the kinds of notifications you receive.
+
+¥	Finally, if you want to use BlitzMail permanently, change your preferred mail address to BlitzMail. To do this, choose Personal Info... from the BlitzMail menu, and click the "BlitzMail" button, then click "OK".
+
+If you have any suggestions, difficulties or questions about BlitzMail, simply send electronic mail to "Postmaster".  We will reply to all your suggestions.  Thanks for your interest and patience.

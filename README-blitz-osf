@@ -1,0 +1,218 @@
+Installing the BlitzMail server (Dec OSF/1)
+===========================================
+
+Setting up BlitzMail on a new system involves installing the server binaries,
+setting up the BlitzMail configuration file, and making the appropriate
+changes to system boot scripts to start up the Blitz server automatically.
+Most of these steps need to be done as root.
+
+1. Create a directory to hold the BlitzMail distribution files, cd to it, and
+unpack the distribution via 'zcat blitz.tar.Z | tar xvf -'.
+
+2. Type "make install" to install the BlitzMail binaries and utility scripts.
+If you're installing on a new system (as opposed to updating an existing
+installation), also do a "make install-config" to copy the sample config file
+into /usr/local/lib/blitz.
+
+3. Create one or more directories to hold BlitzMail mailboxes (one directory
+for each disk partition you use for mailboxes).  If your host is named "fred",
+you might use "/fred1" for the first mailbox directory, "/fred2" for the
+second, and so forth; or use whatever naming convention you prefer.  The
+mailbox directory doesn't have to be on a filesystem all its own; if you have
+only 1 disk you can just put it in the root or /usr filesystem.
+
+4. Edit the Blitz configuration file (/usr/local/lib/blitz/blitzconfig)
+filling in the appropriate host, directory, and file names for your site.
+See the "BlitzManage" document for descriptions of all the configuration file
+commands.
+
+5. Add /etc/services services definitions for Blitz's well-known tcp and udp ports.
+
+poppassd        106/tcp         ppassd epass    # Dorner POP passwd changer
+pop3            110/tcp
+dnd             902/tcp                         # Dartmouth Name Directory
+dndctl          903/tcp                         # DND console
+blitzmail       2151/tcp                        # Blitzmail server
+blitzctl        2153/tcp                        # Blitzmail server console
+blitzctl        2153/udp                        # Blitz server status
+dartnotify      2152/tcp                        # Notification server (send)
+dartnotify-me   2154/udp                        # Notification server (recv)
+
+6. Run /usr/local/lib/blitz/computemessid to initialize the "messid" file.
+This program will read the blitzconfig file (to determine what mailbox
+filesystems exist), then search all mailboxes to determine the next available
+message id. Since you're starting from a clean disk, messageids will begin at
+101. (NOTE: the DND server must be installed & running before running
+"computemessid").
+
+7. If desired, set up the greeting message new users will receive the first
+time they sign on.  A sample greeting message ("Welcome.txt") is included in
+this distribution.  Edit the greeting text as appropriate for your site.
+Since the message text is in Mac format, each paragraph of the text is one
+long line; use an editor (like Emacs) that doesn't mind this.  Note
+also that it's possible to include Mac special chars in the text, although
+they display oddly on the screen.
+
+You should be sure to change the Message-id: and From: lines to use the
+appropriate host names; you'll probably want to change the date too.  Don't
+remove any of the header lines, though; they're necessary.
+
+When you're done editing the message, use the "makemess" utility to convert
+the text into a BlitzMail-format message; place the results in the file named
+in the INITIALMESS line of blitzconfig.  For example:
+
+    /usr/local/lib/blitz/makemess <Welcome.txt >/fred1/Welcome
+
+8. Type "make install-scripts" to install daily, weekly and monthly Blitz
+cleanup scripts in /usr/adm.  
+
+Add the following lines to the root crontab:
+
+#
+# daily, weekly, monthly blitz cleanup
+#
+0 0 * * *  /bin/sh /usr/adm/blitzdaily >/usr/adm/blitzdaily.log 2>&1
+10 0 * * 6 /bin/sh /usr/adm/blitzweekly >/usr/adm/blitzweekly.log 2>&1
+20 0 1 * * /bin/sh /usr/adm/blitzmonthly >/usr/adm/blitzmonthly.log 2>&1
+
+9. Edit /sbin/init.d/sendmail to not run the sendmail daemon as an 
+SMTP server (the BlitzMail server uses the SMTP port, so sendmail can't 
+have it).  The sendmail daemon will still check the queue for outgoing 
+messages (in case a Unix user sends mail from the server machine).
+
+Locate the line that looks like:
+
+   /usr/sbin/sendmail -bd -q15m -om &
+
+and change it to:
+
+   /usr/sbin/sendmail -q15m -om &
+
+(i.e., remove the '-bd' option).
+
+Also change all instances of "grep connection" to "grep q15m".
+
+10. Add the BlitzMail and DND psuedo-hosts to the name server for your local
+domain.  The psuedo-hosts do not have IP addresses, just MX records pointing
+to the BlitzMail server machine(s).  For example, if your DND psuedo-host is
+"directory", your BlitzMail psuedo-host is "blitz", and you have two BlitzMail
+servers "fred" and "ethel", add records:
+
+
+directory       MX      10      fred
+directory       MX      10      ethel
+blitz       	MX      10      fred
+blitz       	MX      10      ethel
+
+11. The Blitz server processes log errors using syslog(3), with a facility
+code of LOG_LOCAL1.  The default syslog configuration will send these
+errors to the console and to /usr/adm/messages.  If you wish to have a
+distinct log file (e.g., /usr/adm/blitz-debug) for just BlitzMail, add the
+following line to /etc/syslog.conf:
+
+local1.debug                                    /usr/adm/blitz-debug
+
+12. If desired, create a /cores directory so all BlitzMail
+core dumps go to a well-known place.  The BlitzMail master server checks the
+space remaining on the file system containing /cores; it limits core dump size
+so a dump won't consume more than half the remaining free disk space.
+
+13. Check the following kernel config settings; you may need to increase
+them and rebuild the kernel. For a moderately large Blitz system (500+
+simultaneous connections) we recommend as a *minimum*:
+
+   maxusers 128
+   vpagemax 32768
+
+Also set the following variables in /etc/sysconfigtab:
+
+vm:
+        vm-mapentries = 500
+
+proc:
+        max-threads-per-user = 1000
+	per-proc-data-size = 268435456
+
+
+14. Reboot the machine; the BlitzMail server will start up automatically.
+
+15. The first thing you should do after BlitzMail is up and running is create
+a "postmaster" mailing list.  
+
+First, connect to the BlitzMail server control port.  If your server machine
+is  "fred", you'd do "telnet fred blitzctl".  Log in with your DND name and
+password (you must have BLITZPRIV permission on your DND account to use the
+BlitzMail control connection).  Use the "ledit" command to create a list
+called "postmaster", giving everyone permission to read and send to the list,
+but reserving write permission:
+
+Blitzctl fred> ledit postmaster
+Creating new list 'postmaster'
+Owner [Blitzmail] 
+Group [Blitzmail] 
+Owner accesses rws
+Group accesses rs
+World accesses rs
+
+Permissions for list 'postmaster' will be:
+Owner:   BlitzMail
+Group:   BlitzMail
+Access:  (Owner: RWS; Group: RS; World: RS)
+Is this correct? [Y or N] y
+List created.
+
+Users with BLITZPRIV permission always have access to all lists.  Sign on
+to the BlitzMail application, click on the "Address Book" icon, and choose
+"Group Lists".  Open the "postmaster" list and enter the name(s) of the
+people who should receive BlitzMail questions and trouble reports at your
+site.
+
+
+About Hostnames
+===============
+
+There are a number of special hostnames involved in putting together a
+BlitzMail system.  First, there is the BlitzMail psuedo-host name (defined
+by the HOSTNAME command in blitzconfig).  A given BlitzMail system may 
+contain multiple BlitzMail servers, but the existence of the multiple 
+servers is hidden from the average user; individual server names never 
+appear in mail addresses.  Instead, the Blitz psuedo-host name (we suggest
+you use "blitz") refers to all the servers collectively.
+An address of <user>@<blitzhost> directs the message to that user's 
+BlitzMail mailbox.  The BlitzMail servers automatically take care of 
+getting the message to the correct server; neither the sender nor the
+recipient need know which server has the mailbox.
+
+The other psuedo-hostname is DNDHOST.  Sending to <user>@<dndhost> directs
+the message to that user's preferred mail address (based on the MAILADDR 
+field of their DND entry). If the user's preferred address is BlitzMail,
+their MAILADDR will be set to <user>@<blitzhost>, and the message will 
+go to their BlitzMail box.  The difference between <user>@<blitzhost> 
+and <user>@<dndhost> is that the former always goes to the BlitzMail
+account, while the latter goes to whatever the user has chosen as their
+preferred address.  
+
+It's important to understand that DNDHOST is not necessarily the same 
+as the actual hostname of the machine that runs the DND server; it's a
+logical host name that senders use to direct mail to a given user's 
+preferred mailbox.  The BlitzMail server knows to do this mail 
+redirection when it sees a message addressed to <user>@<dndhost>.
+You can set up DNDHOST as a psuedo-host with no IP address, just MX 
+record(s) pointing to the BlitzMail server(s).  For example, if DNDHOST is
+"directory", the BlitzMail server might redirect a message for
+"Fred.Flintstone@directory.foobar.edu" to Fred's BlitzMail account if he uses
+BlitzMail or "fredf@fredvax.foobar.edu" if he doesn't.
+
+If the DND is going to serve as the central mail redirecting authority
+for the entire site, DNDHOST can be simply the domain name of the
+institution (foobar.edu); that means that to send mail to anyone at Foobar
+you just mail to full_name@foobar.edu. Again, you would do this by making
+the MX for "foobar.edu" point to the BlitzMail server(s).
+
+The DNDRESOLVER config command controls how the Blitz server handles
+<user>@<dndhost> messages when <user> doesn't resolve uniquely in the DND.
+If DNDRESOLVER is ON, Blitz is the final authority and will bounce any
+messages that don't resolve. If DNDRESOLVER is OFF, they will instead be
+forwarded to <dndhost>; this is appropriate only if <dndhost> is going to
+do something with the message other than send it right back to Blitz!
+

@@ -1,0 +1,73 @@
+#! /bin/sh
+#############################################################
+#
+#
+#   Daily BlitzMail cleanup
+#
+#
+#   Clean out old blitzmail and sendmail log files
+#
+#
+##############################################################
+#
+# log files should NOT be world-readable
+#
+umask 27
+#
+# How many days to keep log files, and when to compress
+#
+LOGLIFE=10
+LOGCOMPRESS=2
+#
+# blitzmail config file
+#
+BLITZCONFIG=/usr/local/lib/blitz/blitzconfig
+#
+# stats file (date messcount delcount)
+#
+STATFILE=/usr/adm/blitz.stats
+#
+# scan config file to get name of log file
+#
+if [ -f $BLITZCONFIG ]; then
+	BLITZLOG=`sed 's/;.*//' $BLITZCONFIG | \
+	grep -i -w LOGFILE | \
+	awk '{print $2}'`
+	#
+	#
+	# extract stats from logfile
+	#
+	DATE=`head -1 $BLITZLOG | awk '{print $1}'`
+	MESSCOUNT=`fgrep -c 'Delivering' $BLITZLOG`
+	DELCOUNT=`fgrep -c 'sent to' $BLITZLOG`
+	echo $DATE $MESSCOUNT $DELCOUNT >>$STATFILE
+	#
+	#
+	# clean up blitzlog files
+	#
+	/usr/adm/newlog $BLITZLOG $LOGLIFE $LOGCOMPRESS
+	#
+	#
+	# clean up blitz debug log (1 week only)
+	#
+	/usr/adm/newlog /usr/adm/blitz-debug 6 2
+fi
+#
+#
+# clean up sendmail log files (if appropriate for this system)
+#
+if [ -f /usr/spool/mqueue/syslog ]; then
+	/usr/adm/newlog /usr/spool/mqueue/syslog $LOGLIFE $LOGCOMPRESS
+fi
+#
+# clean up security log (if present)
+#
+if [ -f /usr/adm/sialog ]; then
+	/usr/adm/newlog /usr/adm/sialog 6 2
+fi
+#
+# make sure syslog re-opens log file (pid filename is os-dependent)
+#
+test -f /var/run/syslog.pid && kill -HUP `cat /var/run/syslog.pid`
+test -f /etc/syslog.pid && kill -HUP `cat /etc/syslog.pid`
+

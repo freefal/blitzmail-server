@@ -1,0 +1,42 @@
+Configuring BlitzMail for "Vanity" domains
+==========================================
+
+The vanity domain feature lets one BlitzMail system masquerade as several
+independent domains. This is accomplished by configuring the BlitzMail server
+to recognize the vanity domain name(s) as aliases for the primary DND
+domain name, so it will accept messages for <user>@<vanity> as well as
+<user>@<dndhost>.
+
+On outgoing messages, the BlitzMail server will use the EMAIL field of the
+sender's DND entry to generate the From: line, thus using the correct vanity
+domain for that particular user. The MAILFROM field of the DND entry holds
+the vanity domain name (or is null, for the default domain). Whenever the
+NAME or MAILFROM field changes, the DND server automatically recomputes the
+EMAIL field as <name>@<mailfrom>.
+
+To add a vanity domain name to your system, the name must be configured in
+the dndconfig and blitzconfig files, as well as in the DNS database.
+
+For example, to add "vanity.com" as a vanity domain for your system:
+
+0) Make sure your DND database includes the MAILFROM field.
+
+1) In dndconfig, add the line:
+
+	MAILFROM vanity.com
+
+This instructs the DND server to accept "vanity.com" as a legal value
+for the MAILFROM field. Once you've done this, you can then go through and
+change the MAILFROM field of everyone that wants to be in the vanity domain.
+
+2) In blitzconfig, add the line:
+
+	DNDHOST vanity.com
+
+Note that this should come *after* your existing DNDHOST configuration line,
+since you're adding an alias, not changing the current one. This causes the
+BlitzMail server to recognize mail for <user>@vanity.com as "local".
+
+3) In DNS, add an MX record for "vanity.com" pointing to your Blitz server
+host(s), so the rest of the world will know to route "vanity.com" mail to
+BlitzMail.

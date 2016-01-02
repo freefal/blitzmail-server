@@ -1,0 +1,9 @@
+#! /bin/sh
+if [ ! -f /etc/blitzmaster.pid ]; then
+	echo "**** Cannot find BlitzMail server process id to kill it"
+	exit 1
+fi
+
+kill `cat /etc/blitzmaster.pid`
+rm -f /etc/blitzmaster.pid
+

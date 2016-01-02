@@ -1,0 +1,565 @@
+To: blitzmail-team
+Subject: prancer updated
+Date: Thu, Jun 17, 1993 1:34 AM
+
+Prancer is now running a beta version of the 2.0 blitz server. This is 
+a major new release of the server, incorporating all the new filing 
+features and numerous (minor) changes to make the code compile on 
+the alpha.
+
+A few minor bug fixes have also been added since version 1.22:
+
+¥ De-binhexing no longer trashes the finder info of files with very 
+long names
+
+¥ personal lists are no longer checked when trying to resolve the 
+members of a public mailing list (public lists should be context-
+insensitive)
+
+¥ wait 30 seconds before retrying dnd hostname lookup (so you don't 
+go into a hard loop if dartvax&coos are both down)
+
+¥ control connection command to add mailing lists now checks for 
+disconnects each step of the way
+
+¥ still more kinds of automatic messages are recognized as such (and 
+don't generate a return receipt)
+
+
+The portability changes are extremely pervasive (the diff runs to 
+over 90 pages), so be on the lookout for any sort of unusual behavior 
+from prancer.
+
+This is also your chance to start trying out the 2.0 client Jim sent out 
+earlier (you can't use it with the old server). One warning: if for any 
+reason we have to revert prancer to the old software, any folders 
+you create will vanish and everything will end up back in the InBox.
+
+To: blitzmail-team
+Subject: recent blitz server changes
+Date: Thu, Sep 16, 1993 4:40 PM
+
+We've been running version 2.2 of the Blitz server on all reindeer for 
+the past 2 weeks or so. For the record, here's the log of changes since 
+version 2.0.
+
+>> signon timeout 1 minute instead of 2
+>> increase DND_MAXCONN to 10
+>> don't accept upload larger than 80% of free tmp space
+>> single-folder FLIS
+>> startup: log both recoverable (DND down) and unrecoverable (bad 
+name) errors
+>> startup: don't spin when DND down
+>> cty: more information in uid/user commands
+>> folder length calculation; FLIS shows length
+>> smtp: clean up temp files after client disconnect
+>> smtp: fix bug in mailbox xfer - initialize holes in folder seq. to -1
+
+
+To: blitzmail-team,steve campbell
+Subject: SMTP timeouts
+Date: Fri, Sep 24, 1993 4:39 AM
+
+Several of the Blitz servers, prancer in particular, have been having 
+problems with too many open files recently.
+
+Part of the problem appears to be incoming SMTP connections from 
+dartvax -- when dartvax crashes or has to be rebooted in the middle 
+of the day, the blitz servers can end up with a bunch of lingering 
+SMTP connections (I counted 40 on prancer yesterday).
+
+To prevent too many resources from being devoted to non-functional 
+SMTP connections, I've introduced a couple of protections into the 
+Blitz server. First, it now has an upper limit on how many 
+simultaneous SMTP connections it will accept (configurable; default = 
+20). Also, there's now an idle timeout on all incoming and outgoing 
+SMTP connections (default value = 20 minutes). The timer is reset 
+whenever a command or an buffer of data is sent/received; its 
+purpose is to clear things out if the other end of the connection dies 
+or hangs unexpectedly. The value of 20 minutes is quite conservative 
+(if nothing has happened for that long, it seems very unlikely the 
+connection is still viable). The *minimum* SMTP timer values 
+specified in the Host Requirements RFC range from 5 to 10 minutes.
+
+The new server software (2.2.1.1) is running only on prancer so far; 
+if no problems arise I will install it on the other machines.
+
+To: jim matthews
+Subject: blitzserv 2.6
+Date: Mon, Nov 1, 1993 2:46 PM
+
+In case you're interested, here's the complete list of changes in the
+version I just checked Friday. I'm going to continue to play around 
+with buffered/unbuffered io, but I thought I'd make an official 
+version first.
+
+I guess this qualifies as the Beta of the Alpha server -- the feature 
+list is
+now complete (including a new BlitzWatch protocol), and at this 
+instant there
+are no known bugs.
+
+ci -l2.6 RCS/* control.c control.h
+RCS/binhex.c,v  <--  binhex.c
+new revision: 2.6; previous revision: 2.3
+>> remove redundant & in bcopy
+>> .
+done
+RCS/blitzserv.c,v  <--  blitzserv.c
+new revision: 2.6; previous revision: 2.5
+>> udp status packets
+>> t_reaper thread now handled by t_io.c
+>> ignore SIGPIPE in every thread
+>> serialize access to getservbyname
+>> my_atnet is in host byte order
+>> .
+done
+RCS/client.c,v  <--  client.c
+new revision: 2.6; previous revision: 2.4
+>> avoid calling t_selwait before responding to each command
+>> log unexpected DND errors to console
+>> TCP notification
+>> .
+done
+RCS/config.c,v  <--  config.c
+new revision: 2.6; previous revision: 2.4
+>> don't assume h_errno set when gethostbyname succeeds 
+>> .
+done
+RCS/control.c,v  <--  control.c
+new revision: 2.6; previous revision: 2.3
+>> UDP versions of status routines
+>> .
+done
+RCS/cty.c,v  <--  cty.c
+new revision: 2.6; previous revision: 2.3
+>> ignore SIGPIPE in all threads
+>> serialize getservbyname calls
+>> in mailbox xfer, send prefs first
+>> .
+done
+RCS/ddp.h,v  <--  ddp.h
+new revision: 2.6; previous revision: 2.3
+>> my_atnet is in host byte order
+>> .
+done
+RCS/deliver.c,v  <--  deliver.c
+new revision: 2.6; previous revision: 2.4
+>> TCP notifications
+>> .
+done
+RCS/mbtest.c,v  <--  mbtest.c
+new revision: 2.6; previous revision: 2.3
+>> portability fixes; measure elapsed time of tests
+>> .
+done
+RCS/mess.c,v  <--  mess.c
+new revision: 2.6; previous revision: 2.4
+>> fix byte order bugs
+>> .
+done
+RCS/misc.c,v  <--  misc.c
+new revision: 2.6; previous revision: 2.3
+>> NUMLEN #define (length of ascii # depends on word length)
+>> .
+done
+RCS/misc.h,v  <--  misc.h
+new revision: 2.6; previous revision: 2.3
+done
+RCS/mlist.c,v  <--  mlist.c
+new revision: 2.6; previous revision: 2.3
+>> avoid malloc(0) in ml_summary when no lists defined
+>> .
+done
+RCS/port.h,v  <--  port.h
+new revision: 2.6; previous revision: 2.3
+>> pthread_yield #define
+>> .
+done
+RCS/queue.c,v  <--  queue.c
+new revision: 2.6; previous revision: 2.4
+>> TCP notifications
+>> ignore SIGPIPE in every thread
+>> .
+done
+RCS/queue.h,v  <--  queue.h
+new revision: 2.6; previous revision: 2.3
+done
+RCS/smtp.c,v  <--  smtp.c
+new revision: 2.6; previous revision: 2.4
+>> serialize access to getservbyname
+>> ignore SIGPIPE in every thread
+>> don't forget to unlock box after receiving transfer
+>> on transfer, set new session-id & stamp every folder with it
+>> .
+done
+RCS/summ.c,v  <--  summ.c
+new revision: 2.6; previous revision: 2.3
+>> remove redundant cast
+>> .
+done
+RCS/t_io.c,v  <--  t_io.c
+new revision: 2.6; previous revision: 2.5
+>> t_reaper thread to time out sessions
+>> keep track of max_used_fd to speed up t_select
+>> select timeout to 10ms
+>> .
+done
+
+
+Date: 27 Jan 94 14:52:16 EST
+From: David E. Gelhar
+Subject: dancer updated
+To: blitzmail-team@Mac
+
+Dancer is now running version 2.9 of the Blitz server.
+
+This fixes the bug that caused connections beyond the first 64 to be 
+immune from timeouts. It also uses a different strategy for checking 
+for pending input (one select() per connection, instead of a master 
+thread to check all connections) that's more cpu-friendly on the 
+Alpha. Unfortunately, this doesn't work on the NeXTs, so there are 
+two versions of the code conditionally compiled.
+
+Here's the complete list of changes since version 2.6 (11/1/93):
+
+>> fix bug in ForwardTo "me"
+>> don't flush before beginning download (send length & data in same 
+buffer)
+>> UPDATELISTS console command
+>> watch for long addresses in exportmess
+>> initialize dnd semaphores before use
+>> finfocopy uses normal buffering - trade an extra strcpy for fewer 
+packets
+>> catch long addresses in message headers
+>> validate fsname when reading input queue; re-resolve if bogus
+>> in m_smtpdisconnect mode, avoid sending QUIT on dead 
+connection
+>> on xfer, ignore bogus prefs (rather than killing the transfer)
+>> put correct # in "duplicate summary" log message
+>> do a t_dndclosepool() when a dead DND connection is detected
+>> keep log file open for efficiency
+>> fix memory leak if DUP'd user signs on
+>> add abortsig() routine (to get clean dump on OSF/1)
+>> return error if t_fflush interrupted by urgent/disconnect
+>> t_fwrite copies data in bulk, and returns length
+>> allocate only space needed for config strings
+>> SMTPDISCLAIMER command
+>> do isascii() before islower() - fixes bug in special chars in list 
+names
+>> check for urgent data (break) on cty connection
+>> increase SUMMBUCK_LEN from 1500 to 2000 (waste less of 2048-
+byte malloc)
+>> fix memory leak in OSF version (call pthread_cond_destroy)
+>> retry instead of abort on blitz-smtp protocol error
+>> fix bug in check for non-peer blitzformat message
+>> fix bug in cleanup from failed transfer
+>> fix bug in t_fread that returned error as result of old t_errno value 
+(bug caused connections to be permanently bad after an ethernet 
+jam)
+>> specific console message for lost connection on outgoing SMTP
+>> summary info now includes recipient name
+>> new shutdownpoll thread to watch for shutdown signal (instead of 
+t_select)
+>> don't let connection timeout value go negative
+
+Date: 25 Mar 94 01:57:08 EST
+From: David E. Gelhar
+Subject: blitzserv2.10
+To: blitzmail-team@Mac
+
+Dancer & Prancer are now running a new version of the blitz server. This is
+basically a maintenance release, with lots of trivia like updated copyright
+information & simplified makefile configuration in preparation for
+packaging things up for anonymous ftp.
+
+The only substantive changes are:
+
+* blitzq.c: close directory when done reading it
+
+* Set FIONBIO option (non-blocking io) on connections to ensure that a
+write won't block indefinitely because of network flow control. This fixes
+an Alpha-specific problem - select() can say "it's ok to write", but maybe
+it can only take 512 bytes when you want to write 1k. Avoiding blocking
+makes sure a hung connection doesn't cause the user's mailbox to become
+locked indefinitely.
+
+* The t_io code now supports telnet escape sequence processing (on
+connections that enable it); merging in the t_io code from the DND server.
+This makes breaks work a little better on the blitzctl connection.
+
+* The nbp server now processes echo packets. This makes the blitz servers visible
+to a MacPing on their CAP network, and will help out the file server code.
+
+If no problems are reported, the new version will be installed on the
+remaining servers this weekend.
+
+To: blitz-admins@dartmouth.edu,blitzmail-team
+Subject: blitzserv 2.12 available
+Date: Wed, Sep 28, 1994 11:18 PM
+
+Version 2.12 of the Blitz server is now available in the usual place 
+(ftp://ftp.dartmouth.edu//pub/mac/BlitzMail/Export).
+
+There aren't a lot of significant changes since the 2.11 beta versions that 
+have been out for a while. One thing that may be of interest is that the 
+blitzctl  "uid" and "user" commands now work even if your DND doesn't have 
+a DEPTCLASS field.  Also, there's more information in the "stolog" file, and
+inter-server mailbox transfers automatically remove the box from the old
+server now.
+
+The Alpha binaries are now compiled under OSF/1 version 2.1. They're statically
+linked, which makes them larger, but allows binaries compiled under 2.1 to run
+on OSF/1 version 1.3 (which doesn't work if you try to use shared libraries). 
+The binaries have been tested on both 1.3 and 2.1 systems (but not under 3.0);
+let me know if you encounter trouble in this area.
+
+Before upgrading, we recommend you make backup copies of the previous version, 
+just in case.
+
+A more detailed list of changes follows.
+
+-- david
+
+Changes since blitzserv2.10:
+
+>> fix bug in handling <listname>-request special addresses
+
+>> use readdir instead of obsolete "getdirentries" when reading directory
+
+>> messages in Sent Msgs is now included in total when decided whether to
+issue "boxpig" warning
+
+>> server will no longer allow standard folders to be renamed
+
+>> check for existence of DEPTCLASS field before trying to read it
+
+>> when moving box to different server ("xfer" blitzctl command) or cleaning 
+out invalid boxes ("cleanout"), do box rm and cp's interally (instead of using 
+fork/exec to run rm or cp). This is a major efficiency gain, since forking a 
+multi-threaded program is extremely expensive (and has a nasty tendency to drive 
+OS bugs). Inter-server transfers now automatically remove the box from the old
+server once the transfer finishes.
+
+>> The "xfer" control connection command can now be interrupted by control-C
+
+
+>> include disk name & mess count in stolog file
+
+>> generate correct BlitzWatch numbers under OSF/1 2.x, where there's now a new 
+CP_WAIT CPU state
+
+>> an inter-server transfer now clears the Expired<n> prefs (they're invalid, 
+since the new server has different message numbers)
+
+>> lock individual mailbox instead of global mbox_sem when recording blitzinfo 
+in DND
+
+>> free in-memory copies of box information (summaries, mailing lists) based 
+on idle count, not simple timer.
+
+>> log if mbox_sem locked for more than 5 seconds
+
+[ The previous 3 changes all help diagnose/avoid a performance problem that can
+occur on a server with too little memory. The global mbox_sem is locked while
+the server makes a pass through the mailbox list freeing up cached information
+that hasn't been used recently; while it's locked essentially all user actions
+are put on hold. The lock is held for a negligible amount of time (milliseconds
+at most) *unless* pathological virtual memory behavior occurs and the server
+takes a zillion page faults. The new code reduces thrashing with a better 
+strategy for freeing cached mailbox data, and also notices when it incurs a
+delay of 5 seconds or more. If you see messages like "mbox_sem locked for <n>
+seconds" in your log file, you need more memory (or fewer users)! ]
+
+
+Changes in version 2.12 of 'master':
+
+>> allow args on subcommands
+>> -d option
+>> print more information (subjob name) on console
+>> handle bavail units difference between OSF & NeXT
+>> disassociate() *before* starting threads
+>> don't re-launch children once KILL signal received
+
+Date: 12 Jan 95 00:56:59 EST
+From: David.E.Gelhar@Dartmouth.EDU (David E. Gelhar)
+Subject: blitzserv 2.13 and dndserv2.3 available
+To: blitzmail-team@Mac.dartmouth.edu, blitz-admins@Dartmouth.EDU
+
+Version 2.13 of the Blitz server is now available in:
+
+	ftp://ftp.dartmouth.edu//pub/mac/BlitzMail/Export/
+
+The following changes have been made since the last release:
+
+* The UID and USER control commands now work at sites that don't have a
+DEPTCLASS field in their DND [ this time for sure... ]
+
+* A new MESSMAXLEN config command allows you to limit the max message size
+users can send.
+
+* The word-wrap margin when sending to non-blitz recipients is now 80, instead
+of 78.
+
+* The mbox_sem lock is now finer-grained (each hash table row is locked
+independently). This should improve performance problems resulting from
+contention for this lock.
+
+Date: 22 Feb 95 01:24:29 EST
+From: David E. Gelhar
+Subject: blitzserv 2.14
+To: blitz-admins@dartmouth.edu
+Cc: blitzmail-team@Mac
+
+A new release (2.14) of the Blitz server is available for FTP in the regular
+place:
+
+ftp://ftp.dartmouth.edu/pub/mac/BlitzMail/Export/
+
+As usual, Dec and NeXT binaries are provided, as well as sources.
+
+
+There's one very exciting new feature in this version -- the Blitz server now
+supports POP3 clients! Thanks to some diligent effort by Jim Matthews hacking
+this feature into the server, you can now read BlitzMail using Eudora (or any
+other POP mailer).
+
+This means access to Blitz from DOS, Windows, Unix, and any other system that
+has a POP mail client -- the elusive Windows BlitzMail is finally here (in a
+backhanded sort of way).
+
+POP support is optional; to enable it make sure the following entries are
+present in the /etc/services file:
+
+poppassd        106/tcp         ppassd epass    # Dorner POP passwd changer
+pop3            110/tcp
+
+One warning: Blitz and Eudora have fundamentally different approaches to
+storing mail: Blitz keeps mail on the server, while Eudora likes to store it on
+your local hard disk. If you switch back and forth between Blitz and Eudora
+clients, there's potential for confusion (Eudora can't see Blitz folders and
+vice-versa). One tip: turn on the "leave mail on server" preference in Eudora,
+to keep Eudora from deleting everything from the server (and leaving it only on
+your local disk).
+
+
+Technical details: POP clients are handled much like Blitz clients, so you
+can't sign on via both protocols at the same time, and automatic timeouts apply
+equally to both (but probably aren't very necessary for POP clients).  The POP
+STAT command has the side effect of clearing the new mail bit (like the Blitz
+WARN command).  The POP RETR command marks a message as read (like the Blitz
+TEXT command). The RETR command will download any Blitz enclosures as BinHex;
+clients (like Eudora) that support BinHex will do the right thing. The POP DELE
+command moves messages to the Trash folder, subject to that folder's expiration
+interval (just like the old Blitz DELE command). There's a new config command
+(DFTTRASHEXPIRE) that lets you specify a default expiration for the trash. If
+you expect to have some POP-only users, it would be wise to set an appropriate
+trash expiration, since POP deletes things but never empties the trash.
+
+Known bugs: MIME messages with BinHex enclosures and lines that start
+"Content-Type: application/mac-binhex40" but *aren't* MIME body part headers
+may have the BinHex in the wrong place.
+
+Extra feature: You can change your password (i.e. your DND password) from
+Eudora and some other POP clients.
+
+-- david
+
+File-by-file list of changes follows:
+
+RCS/binhex.c,v  <--  binhex.c
+new revision: 2.14; previous revision: 2.12
+>> CRLF mode optional (for POP)
+
+RCS/blitzserv.c,v  <--  blitzserv.c
+new revision: 2.14; previous revision: 2.13
+>> POP support
+>> abortsig
+
+RCS/checkallmess,v  <--  checkallmess
+new revision: 2.14; previous revision: 2.10
+reuse log message of previous file? [yn](y): n
+>> fix typo in usage check
+
+RCS/client.c,v  <--  client.c
+new revision: 2.14; previous revision: 2.13
+>> POP support
+
+RCS/config.c,v  <--  config.c
+new revision: 2.14; previous revision: 2.13
+>> DFTTRASHEXPIRE command
+
+RCS/makefile,v  <--  makefile
+new revision: 2.14; previous revision: 2.13
+>> compile with -framepointer (alpha)
+>> cryptutil.o and cryptutil.h
+
+RCS/mbox.c,v  <--  mbox.c
+new revision: 2.14; previous revision: 2.13
+>> abortsig
+
+RCS/mbox.h,v  <--  mbox.h
+new revision: 2.14; previous revision: 2.13
+>> POP support; PREF_AUTOEXPTRASH
+
+RCS/mess.c,v  <--  mess.c
+new revision: 2.14; previous revision: 2.10
+>> don't log broken pipe (remote disconnect)
+>> check for error creating temp file
+
+RCS/misc.c,v  <--  misc.c
+new revision: 2.14; previous revision: 2.13
+>> new setup_signals() routine to initialize each thread's signal handling
+
+RCS/pubml.c,v  <--  pubml.c
+new revision: 2.14; previous revision: 2.10
+>> fix unitialized pointer bug in pubml_sendupdate_all
+
+RCS/queue.c,v  <--  queue.c
+new revision: 2.14; previous revision: 2.13
+>> abortsig & setup_signals
+
+RCS/sem.c,v  <--  sem.c
+new revision: 2.14; previous revision: 2.10
+>> (hack!) stackcrawl routine for OSF/1; to generate a traceback when
+>> abortsig() is called (since core dump doesn't work right)
+
+RCS/smtp.c,v  <--  smtp.c
+new revision: 2.14; previous revision: 2.12
+>> log when smtp connection max reached
+>> setup_signals / abortsig
+
+RCS/t_dnd.c,v  <--  t_dnd.c
+new revision: 2.14; previous revision: 2.13
+>> new change_password routine
+
+RCS/t_io.c,v  <--  t_io.c
+new revision: 2.14; previous revision: 2.10
+>> setup_signals
+To: blitz-admins@dartmouth.edu
+Subject: blitzserv2.15
+Cc: blitzmail-team
+Date: Wed, Mar 8, 1995 2:39 AM
+
+Version 2.15 of the Blitz server is available for FTP in the regular place:
+
+ftp://ftp.dartmouth.edu/pub/mac/BlitzMail/Export/
+
+There are no major changes since version 2.14; except that version 2.15 now
+runs under AIX 3.2 (IBM-ish Unix). Thanks to the Dartmouth Mafia at Apple
+(Michael McDaniel, Jamie Osborne, and Nick Brosnahan) for undertaking the work
+of porting the code to AIX!
+
+Because AIX isn't one of our principal hardware platforms, Dartmouth will not
+distribute AIX binaries -- if you'd like to run the Blitz server on an AIX
+machine, you have to get the sources and compile it yourself.
+
+A new release of the DND with support for AIX and for Oracle version 7 will be
+forthcoming "soon".
+
+-- david
+
+One note: the inter-process communication mechanism used between notifyd and
+nbpd has changed since version 2.14; be sure to upgrade all the binaries
+(blitzserv, notifyd, and nbpd) at once.
+

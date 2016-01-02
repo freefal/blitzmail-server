@@ -1,0 +1,7 @@
+#! /bin/sh
+if ps ax | grep "/usr/local/lib/[b]litz" ; then
+	exit 0
+else
+	echo "##### BlitzMail server not running #####"
+	exit 1
+fi

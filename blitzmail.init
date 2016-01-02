@@ -1,0 +1,24 @@
+#!/sbin/sh
+
+PATH=/sbin:/usr/sbin:/usr/bin
+export PATH
+
+case "$1" in
+'start')
+	/usr/local/sbin/restart_blitz
+	;;
+'stop')
+	/usr/local/sbin/kill_blitz
+	if [ $? -ne 0 ]; then
+		echo "Could not kill BlitzMail server"
+	fi
+	;;
+'restart')
+	/usr/local/sbin/kill_blitz
+	sleep 2
+	/usr/local/sbin/restart_blitz
+	;;
+*)
+	echo "usage: $0 {start|stop|restart}"
+	;;
+esac

@@ -1,0 +1,47 @@
+#!/bin/sh
+##########################################################################
+#
+#	Age & remove log files.
+#
+#       Yesterday's file is log.0, and so forth.
+#
+##########################################################################
+
+PATH=:/bin:/usr/bin:/etc:/usr/etc:/usr/ucb
+USAGE="Usage:  newlog <file> <# of days> [<# to start compressing>]"
+
+if [ $# -ne 2 -a $# -ne 3 ]; then
+	echo $USAGE
+	exit 1
+fi
+
+if [ ! \( -r $1 \) ]; then
+	echo $0: no such file: $1
+	exit 1
+fi
+
+# copy everything to N+1st (compressed or not)
+# if auto-compress set, compress things older than threshold
+
+N=$2
+while
+    OLD=$N
+    N=`expr $N - 1`
+    [ "$N" -ge 0 ]
+do
+	test -f $1.$N && mv $1.$N $1.$OLD
+	test -f $1.$N.Z && mv $1.$N.Z $1.$OLD.Z
+	if [ $# -eq 3 ]; then
+	    if [ $OLD -ge $3 -a -f $1.$OLD ]; then
+		compress $1.$OLD
+	    fi
+	fi
+done
+
+# copy & truncate, preserving owner & mode
+
+cp -p $1 $1.0
+cat /dev/null >$1
+if [ $# -eq 3 ]; then
+    test $3 -eq 0 && compress $1.0
+fi

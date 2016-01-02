@@ -1,0 +1,53 @@
+#! /bin/sh
+#############################################################
+#
+#
+#   Weekly BlitzMail cleanup
+#
+#
+#   clean up old files from mtmp and messxfer directories
+#
+##############################################################
+
+BLITZCONFIG=/usr/local/lib/blitz/blitzconfig
+TEMP=/tmp/blitzweekly.tmp
+LOGLIFE=6
+#
+# scan config file to get filesystem names
+#
+if [ -f $BLITZCONFIG ]; then
+    sed 's/;.*//' $BLITZCONFIG | \
+    grep -i -w FS | \
+    awk '{print $2}' > $TEMP
+    
+    NR=0
+    while
+	NR=`expr $NR + 1`
+	FS="`awk 'NR == '$NR $TEMP`"
+	test "$FS" != ""
+    do
+#
+# remove dangling links to transferred messages
+#
+	echo "Cleaning up $FS/messxfer..."
+	find $FS/messxfer -links -2 -ls -exec rm -f {} \;
+#
+# clean up temp files
+#
+	echo "Cleaning up $FS/mtmp..."
+	find $FS/mtmp -mtime +7 -ls -exec rm -f {} \;
+    done
+
+    rm $TEMP
+fi
+#
+# make backup copy of root filesystem
+#
+/usr/adm/rootbackup
+#
+#
+# clean up console logfile
+#
+if [ -f /usr/adm/messages ]; then
+        /usr/adm/newlog /usr/adm/messages $LOGLIFE
+fi

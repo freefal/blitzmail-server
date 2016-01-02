@@ -1,0 +1,19 @@
+#!/bin/sh
+ECHO=/bin/echo
+
+if [ $# -lt 1 ]; then
+	$ECHO "Usage: checkallmess <directory>..."
+	exit 1
+fi
+DIRS=$*
+
+for i in $DIRS
+do
+    echo -n "$i":
+    set $i/mess/*
+    if [ $# -gt 0 ]; then
+    	checkmess $*
+    else
+    	echo ""
+    fi	
+done

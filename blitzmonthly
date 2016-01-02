@@ -1,0 +1,83 @@
+#! /bin/sh
+#############################################################
+#
+#
+#   Montly BlitzMail cleanup
+#
+#
+#   Clean out old expiration logs
+#
+##############################################################
+umask 27
+#
+# How many months to keep log files, and when to compress
+#
+LOGLIFE=6
+DNDLOGLIFE=24
+LOGCOMPRESS=1
+#
+# blitzmail config file
+#
+BLITZCONFIG=/usr/local/lib/blitz/blitzconfig
+#
+# scan config file to get name of log file
+#
+if [ -f $BLITZCONFIG ]; then
+	BLITZLOG=`sed 's/;.*//' $BLITZCONFIG | \
+	grep -i -w EXPLOG | \
+	awk '{print $2}'`
+	#
+	#
+	# clean up explog files
+	#
+	/usr/adm/newlog $BLITZLOG $LOGLIFE $LOGCOMPRESS
+fi
+#
+# dnd config file
+#
+DNDCONFIG=/usr/local/lib/dnd/dndconfig
+#
+# scan config file to get name of log file
+#
+if [ -f $DNDCONFIG ]; then
+        DNDLOG=`sed 's/;.*//' $DNDCONFIG | \
+        grep -i -w LOGFILE | \
+        awk '{print $2}'`
+        #
+        #
+        # clean up dnd log files
+        #
+        /usr/adm/newlog $DNDLOG $DNDLOGLIFE $LOGCOMPRESS
+fi
+#
+# clean up console log files (Rudolph; compress immediately)
+#
+for i in /usr/adm/consolelog/*.log
+do
+	if [ -f $i ]; then
+		/usr/adm/newlog $i 2 0
+	fi
+done
+
+for i in /usr/adm/DODUMPLOG.?
+do
+	if [ -f $i ]; then
+		/usr/adm/newlog $i $LOGLIFE $LOGCOMPRESS
+	fi
+done
+
+#
+# clean up binary error log (if present on this system)
+#
+if [ -f /usr/adm/binary.errlog ]; then
+	/usr/adm/newlog /usr/adm/binary.errlog $LOGLIFE $LOGCOMPRESS
+fi
+#
+#Kerberos log files
+#
+KRBLOG=/usr/kerberos/database/kerberos.log
+#
+if [ -f $KRBLOG ]; then
+	/usr/adm/newlog $KRBLOG $LOGLIFE $LOGCOMPRESS
+fi
+

@@ -1,0 +1,3 @@
+#! /bin/sh
+
+/usr/local/lib/blitz/master /usr/local/lib/blitz/proclist >/dev/console 2>&1

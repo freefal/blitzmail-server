@@ -1,0 +1,128 @@
+;
+; Sample BlitzMail configuration file
+;
+; ######################## Host & Domain names ############################
+;
+; Local domain name
+;
+; Use of the local domain name is optional within this file, but note that
+; the hostname given in the DNDHOST and HOSTNAME commands appears in return
+; addresses that go out into the SMTP world -- if your site's mailers don't
+; rewrite addresses in messages leaving your domain to add the local domain 
+; name, you must use the fully-qualified name here.
+;
+DOMAIN .Foobar.EDU ; usual name of our domain
+DOMAIN .Foobar ; also recognize it this way
+;
+; BlitzMail psuedo-host name.  
+;    <user>@<blitz host> ---> send to Blitz Mailbox
+;
+HOSTNAME Blitz ; our host name
+ALIAS BlitzMail ; alias of it
+;
+; Psuedo-hostname that triggers DND resolution
+;    <user>@<dnd host> ---> send to preferred address
+;
+DNDHOST Directory.Foobar.EDU
+;
+; DND server's actual hostname
+;
+DNDSERVER DND.Foobar.EDU
+;
+; BlitzMail servers
+;
+; One line here for each of the servers that collectively make
+; up the Blitz psuedo-host.  The LOCAL qualifier indicates which
+; server this config file is for
+;
+SERVER huey LOCAL ; this is us
+; SERVER dewey
+; SERVER louie
+;
+; SMTP relay host
+;
+;    NOTE: must not be same hostname as a peer server!
+;
+; By default, the connection to the SMTP relay host will be kept open
+; permanently, instead of reconnecting for each message.  If the receiving
+; system doesn't like this (e.g., SMail won't actually deliver a mesage until
+; the SMTP connection is closed), uncomment the SMTPDISCONNECT line.
+;
+SMTPHOST mailhost
+; SMTPDISCONNECT ; make new connection for each message
+;
+; ######################### Filesystems ################################
+;
+; There should be one FS line for each directory you wish the Blitz server
+; to use for mailbox storage.  The SPOOLFS line determines which of the FS
+; directories will also be used for queueing incoming and outgoing mail.
+;
+FS /huey1
+; FS /huey2
+SPOOLFS /huey1 ; spool dir is on fs 1
+;
+; greeting message -- must be on spoolfs!
+;
+INITIALMESS /huey1/Welcome
+;
+; ############################ Files ###################################
+;
+; (should usually be on a FS with mailboxes)
+;
+EXPDATE /huey1/expdate
+EXPLOG /huey1/explog
+LOGFILE /huey1/blitzlog
+WARNING /usr/local/lib/blitz/warning
+MESSID /huey1/messid
+NOTIFYTAB /huey1/notifytab
+STICKYTAB /huey1/stickytab
+STOLOG /huey1/stolog
+;
+; ########################### Schedule #################################
+;
+EXPTIME 6:00 ; time to do daily expiration check
+;
+; ############################ Limits ##################################
+;
+USERMAX 200 ; absolute max simultaneous connections
+USERTIMEOUT 60 ; idle connection timeout (minutes)
+USERWORRY 150 ; time out faster when more than this many users
+BOXPIG 5000 ; nag users with more than this much mail (k)
+DFTEXPIRE 6 ; default expiration (months)
+;
+; ##################### Optional Features ##############################
+;
+; The BINHEXENCLS line enables automatic BinHexing of enclosures sent to
+; non-Blitz recipients (if it's not enabled, enclosures are discarded).
+;
+BINHEXENCLS
+;
+; ######################## DND Identity ################################
+;
+PRIVNAME BlitzMail
+PRIVPW zcvwqf
+;
+; ######################## DND Resolver ################################
+;
+; The DNDRESOLVER option controls what the server does with recipients
+; like <user>@<dndhost> when <user> doesn't resolve uniquely in the DND.
+;
+; If there's a machine named <dndhost> that might have user names/aliases
+; distinct from DND names, set DNDRESOLVER OFF -- Blitz will forward things
+; that don't resolve to <dndhost>
+;
+; If the Blitz server is the only entity handling <user>@<dndhost> addresses,
+; you must set DNDRESOLVER ON -- otherwise messages will loop.
+;
+;
+DNDRESOLVER ON
+;
+;
+; ######################## No AppleTalk ################################
+;
+; The NOAPPLETALK line disables all AppleTalk support (notifications will 
+; be sent with UDP, not AppleTalk.)  Thus, no AppleTalk gateway configuration
+; is needed. (A UDP-only configuration is recommended for all sites outside
+; Dartmouth).
+;
+NOAPPLETALK
